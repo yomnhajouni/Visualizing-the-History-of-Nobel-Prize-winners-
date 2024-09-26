@@ -1,0 +1,49 @@
+# Loading in required libraries
+import pandas as pd
+import seaborn as sns
+import numpy as np
+#load the dataset
+nobel=pd.read_csv('data/nobel.csv')
+print(nobel.head(2))
+#find the most common gender and birth coutry
+top_gender=nobel['sex'].value_counts().index[0]
+top_country=nobel['birth_country'].value_counts().index[0]
+print('the gender with the most Nobel laurealtes is :',top_gender)
+print('the most common country of Nobel laureates:',top_country)
+#create US_born winners column
+nobel['usa_born_winner']=nobel['birth_country']=='United States of America'
+print(nobel['usa_born_winner'])
+#Create the decade column
+nobel['decade']=(np.floor(nobel['year']//10)*10).astype(int)
+print(nobel['decade'])
+#Finding the ratio
+prop_usa_winners=nobel.groupby('decade',as_index=False)['usa_born_winner'].mean()
+print(prop_usa_winners)
+#Identify the decade with the highest ratio of US_born winners 
+max_decade_usa = prop_usa_winners[prop_usa_winners['usa_born_winner']==prop_usa_winners['usa_born_winner'].max()]['decade'].values[0]
+print('The decade with the highest ratio of US_born winners :',max_decade_usa)
+#Plotting USA born winners 
+sns.relplot(x='decade',y='usa_born_winner',data=prop_usa_winners,kind='line')
+#Find the decade and category with the highest proportion of female laureates
+nobel['female_winner']=nobel['sex']=='Female'
+print(nobel['female_winner'])
+prop_female_winners =nobel.groupby(['decade','category'],as_index=False)['female_winner'].mean()
+print(prop_female_winners)
+max_decade_category=prop_female_winners[prop_female_winners['female_winner']==prop_female_winners['female_winner'].max()][['decade','category']]
+max_female_dict={max_decade_category['decade'].values[0]:max_decade_category['category'].values[0]}
+print(max_decade_category)
+#plotting relational line plot with multiple categories 
+sns.relplot(x='decade',y='female_winner',data=prop_female_winners,kind='line',hue='category')
+#Find the first woman to win a Nobel Prize
+nobel_woman=nobel[nobel['female_winner']]
+min_row=nobel_woman[nobel_woman['year']==nobel_woman['year'].min()]
+first_woman_name=min_row['full_name'].values[0]
+first_woman_category=min_row['category'].values[0]
+print('The first woman to win the nobel price in :',first_woman_category,'is:',first_woman_name)
+#Determine repeat winners
+winners =nobel['full_name'].value_counts()
+print(winners)
+repeat_list=winners[winners>=2].index
+repeat_list=list(repeat_list)
+print(repeat_list)
+
